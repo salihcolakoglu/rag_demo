@@ -1,27 +1,22 @@
-\# RAG Demo (FastAPI + Streamlit)
+# RAG Demo (FastAPI + Streamlit)
 
+A minimal local RAG playground:
+- **Backend:** FastAPI (health, chat echo, PDF upload + text extraction)
+- **Frontend:** Streamlit (chat UI + PDF upload UI)
 
+## Structure
+- `backend/` : FastAPI API
+- `frontend/`: Streamlit UI
+- `prompts/` : project manifesto + embedded security patch
+- `scripts/` : helper scripts (pip-audit runner)
 
-\## Structure
+## Quickstart (Windows 11)
 
-\- backend/ : FastAPI API (health, chat, documents upload)
+### Prerequisites
+- Miniconda / Anaconda
+- Git
 
-\- frontend/: Streamlit UI (PDF upload + preview)
-
-
-
-\## Setup (Windows)
-
-\### Backend
-
+### 1) Clone
 ```powershell
-
-conda create -n rag-backend python=3.11 -y
-
-conda activate rag-backend
-
-pip install -r backend/requirements.txt
-
-cd backend
-
-uvicorn main:app --reload --port 8000
+git clone https://github.com/salihcolakoglu/rag_demo.git
+cd rag_demo
