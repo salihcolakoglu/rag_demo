@@ -1,0 +1,284 @@
+{
+  "patch_meta": {
+    "patch_id": "secgate-precommit-triplecheck",
+    "name": "Pre-Commit Security Gate (Secrets + Dependency Audit + SAST)",
+    "version": "1.0.0",
+    "created_at": "2026-02-03T00:00:00+03:00",
+    "created_by": "GPT-5.2 Thinking (OpenAI)",
+    "license": "MIT-0",
+    "scope": [
+      "git",
+      "python",
+      "fastapi",
+      "streamlit",
+      "general"
+    ],
+    "tags": [
+      "blue-team",
+      "gray-team",
+      "red-team",
+      "supply-chain",
+      "secrets",
+      "sast",
+      "pre-commit"
+    ],
+    "signature": {
+      "alg": "sha256(canonical_json)",
+      "value": "039a79aecb13fb53a7e6b4584f4b6002b2d52827f5690b02e40f9a45612b9d00"
+    }
+  },
+  "rules_of_engagement": {
+    "allowed": [
+      "defensive security recommendations",
+      "threat modeling and risk prioritization",
+      "safe test cases and validation steps",
+      "static analysis, secrets scanning, dependency auditing"
+    ],
+    "disallowed": [
+      "step-by-step exploitation instructions",
+      "weaponized payloads or exploit code",
+      "instructions to bypass authentication, authorization, or access controls",
+      "harmful or illegal activity guidance"
+    ],
+    "reporting_standard": {
+      "format": [
+        "finding",
+        "impact",
+        "evidence",
+        "recommendation",
+        "retest_steps"
+      ],
+      "severity_scale": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    }
+  },
+  "patch_intent": {
+    "problem": "Public repos and fast-moving demo projects frequently leak secrets, pull vulnerable dependencies, and accumulate insecure coding patterns.",
+    "goal": "Block risky commits early and keep a living security posture via agent roles (blue/gray/red) that continuously enumerate risks and mitigations.",
+    "success_definition": [
+      "New secrets do not reach the main branch.",
+      "Known-vulnerable dependencies are detected before commit.",
+      "High-risk Python patterns are flagged early.",
+      "Security roles produce actionable, prioritized remediation notes."
+    ]
+  },
+  "artifact_bundle": {
+    "repo_files": [
+      {
+        "path": ".pre-commit-config.yaml",
+        "purpose": "Defines pre-commit hooks: hygiene + secrets scan + SAST + dependency audit orchestrator."
+      },
+      {
+        "path": ".secrets.baseline",
+        "purpose": "Baseline for detect-secrets so only NEW secrets fail future commits."
+      },
+      {
+        "path": "scripts/pip_audit_all.py",
+        "purpose": "Runs pip-audit across backend/ and frontend/ requirements."
+      }
+    ],
+    "gitignore_recommendations": [
+      "*.pdf",
+      ".env",
+      ".env.*",
+      "uploads/",
+      "data/",
+      "__pycache__/",
+      ".vscode/"
+    ]
+  },
+  "actions": [
+    {
+      "id": "setup_precommit_security_gate",
+      "intent": "Install and activate pre-commit hooks to enforce a security gate before commits.",
+      "steps": [
+        {
+          "cmd": "cd <REPO_ROOT>",
+          "why": "Ensure all relative paths (requirements, scripts, config) resolve correctly."
+        },
+        {
+          "cmd": "python -m pip install --upgrade pre-commit detect-secrets bandit pip-audit",
+          "why": "Install the toolchain used by the security gate."
+        },
+        {
+          "cmd": "mkdir scripts",
+          "why": "Version small automation helpers in-repo so behavior is consistent across machines."
+        },
+        {
+          "cmd": "detect-secrets scan > .secrets.baseline",
+          "why": "Create the baseline used to detect NEW secret introductions."
+        },
+        {
+          "cmd": "pre-commit install",
+          "why": "Attach the gate to git's pre-commit hook so it runs automatically on each commit."
+        },
+        {
+          "cmd": "pre-commit run --all-files",
+          "why": "Validate the repository passes checks now; surfaces configuration issues immediately."
+        }
+      ],
+      "success_criteria": [
+        "pre-commit run --all-files reports PASSED for all hooks",
+        ".secrets.baseline exists and is committed",
+        "Commits are blocked when a new secret-like token is introduced",
+        "pip-audit fails the commit when a known vulnerability is present",
+        "bandit flags risky Python patterns and blocks commit on issues configured as failures"
+      ],
+      "failure_modes": [
+        {
+          "symptom": "pip-audit fails due to network restrictions",
+          "fix": "Run audits in CI with network access; document the exception locally; prefer pinned dependencies and periodic audits."
+        },
+        {
+          "symptom": "detect-secrets reports many false positives",
+          "fix": "Review .secrets.baseline and tune allowlist carefully; never allowlist real secrets; prefer env vars."
+        },
+        {
+          "symptom": "bandit fails on expected patterns",
+          "fix": "Refactor to safer patterns; if an exception is justified, document it with an explicit # nosec comment and a rationale."
+        }
+      ],
+      "rollback": [
+        {
+          "cmd": "pre-commit uninstall",
+          "why": "Remove the git hook if you need to temporarily disable the gate."
+        },
+        {
+          "cmd": "del .pre-commit-config.yaml .secrets.baseline",
+          "why": "Remove configuration artifacts (optional)."
+        }
+      ]
+    }
+  ],
+  "agentic_security_team": {
+    "shared_context": {
+      "project_type": "local dev demo (FastAPI backend + Streamlit frontend)",
+      "attack_surface": [
+        "file upload endpoint (/documents)",
+        "HTTP API surface (FastAPI routes)",
+        "dependency supply chain (pip requirements)",
+        "developer workstation (secrets in shell history, env files)"
+      ],
+      "frameworks": {
+        "threat_model": [
+          "STRIDE"
+        ],
+        "web_risks": [
+          "OWASP Top 10 (conceptual mapping)"
+        ],
+        "controls": [
+          "least privilege",
+          "secure defaults",
+          "defense in depth"
+        ]
+      }
+    },
+    "roles": {
+      "blue_team": {
+        "role_id": "sec_blue",
+        "name": "Blue Team Defender",
+        "mission": "Harden the system and keep secure defaults; define guardrails and safe patterns for the codebase.",
+        "deliverables": [
+          "hardening checklist for FastAPI + Streamlit",
+          "secure configuration recommendations",
+          "code annotations (# SECURITY: / # RISK:)",
+          "dependency pinning policy"
+        ],
+        "tactics": [
+          "input validation & size limits for uploads",
+          "CORS policy minimization",
+          "authn/authz plan (future: JWT/OAuth) and least privilege",
+          "logging hygiene (no PII/secrets)",
+          "rate limiting and abuse resistance (future)"
+        ],
+        "prompt": {
+          "system": "You are the Blue Team Defender. Produce defensive, implementable recommendations only. Do not provide exploitation steps.",
+          "inputs": [
+            "repo_tree",
+            "changed_files",
+            "current_config",
+            "known_issues"
+          ],
+          "output_schema": {
+            "hardening_tasks": "list",
+            "config_changes": "list",
+            "code_change_requests": "list",
+            "risk_register_updates": "list"
+          }
+        }
+      },
+      "gray_team": {
+        "role_id": "sec_gray",
+        "name": "Gray Team Security Tester",
+        "mission": "Test the system safely with QA-style security checks; find misconfigurations and edge cases; produce reproducible test cases.",
+        "deliverables": [
+          "test plan (happy path + negative tests)",
+          "automated checks integration notes",
+          "regression tests for fixed issues"
+        ],
+        "tactics": [
+          "boundary testing (file size, invalid mime, empty PDF, corrupted PDF)",
+          "API contract testing (status codes, error shapes)",
+          "static scanning review (bandit findings triage)",
+          "dependency audit triage (pip-audit findings triage)"
+        ],
+        "prompt": {
+          "system": "You are the Gray Team Tester. Provide safe test cases and validation steps. No exploitation or harmful guidance.",
+          "inputs": [
+            "endpoints",
+            "sample_inputs",
+            "logs",
+            "tool_reports"
+          ],
+          "output_schema": {
+            "test_cases": "list",
+            "expected_results": "list",
+            "observed_issues": "list",
+            "retest_checklist": "list"
+          }
+        }
+      },
+      "red_team": {
+        "role_id": "sec_red",
+        "name": "Red Team Adversary Simulator",
+        "mission": "Model adversary behavior at a high level and update threat models; prioritize risks and recommend mitigations.",
+        "deliverables": [
+          "threat model update (STRIDE map)",
+          "attack surface inventory",
+          "prioritized risk hypotheses",
+          "mitigation recommendations (defensive)"
+        ],
+        "tactics": [
+          "STRIDE walkthrough per endpoint",
+          "abuse case enumeration (without how-to exploitation)",
+          "supply-chain risk review (dependency provenance, pins)",
+          "data handling review (PII/copyright, retention)"
+        ],
+        "constraints": [
+          "No exploit steps, no payloads, no bypass instructions.",
+          "Focus on risk hypotheses, signals, and defenses."
+        ],
+        "prompt": {
+          "system": "You are the Red Team Simulator. Do not provide actionable exploitation. Provide threat modeling, risk prioritization, and defensive recommendations only.",
+          "inputs": [
+            "architecture_diagram",
+            "routes",
+            "data_flows",
+            "security_controls"
+          ],
+          "output_schema": {
+            "threats": "list",
+            "risk_ratings": "list",
+            "mitigations": "list",
+            "assumptions": "list"
+          }
+        }
+      }
+    }
+  }
+}

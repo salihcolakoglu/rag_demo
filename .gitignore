@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Environments / secrets
+.env
+.env.*
+.venv/
+venv/
+env/
+
+# Streamlit user config (opsiyonel)
+.streamlit/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Data / uploads (public repo için önerilir)
+uploads/
+data/
+*.pdf
+
+# ---- Python cache / build artifacts ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ---- Virtual env / conda (we don't commit environments) ----
+.venv/
+venv/
+ENV/
+env/
+.conda/
+conda-meta/
+
+# ---- Secrets / local config ----
+.env
+.env.*
+!.env.example
+
+# ---- OS/editor noise ----
+.DS_Store
+Thumbs.db
+
+# ---- Local data (DO NOT COMMIT) ----
+data/
+uploads/
+*.pdf
